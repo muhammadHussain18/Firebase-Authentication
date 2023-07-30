@@ -1,6 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateEmail, updateProfile } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
-
+import { doc, setDoc, getFirestore, getDoc,
+               } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js"; 
 
 const firebaseConfig = {
   apiKey: "AIzaSyB5Nw5mqS2Imehe11ypEBwvuLvkBpy8W4Q",
@@ -13,6 +14,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app)
+const db = getFirestore(app);
 
 let email = document.getElementById("email")
 let password = document.getElementById("password")
@@ -26,8 +28,13 @@ let fullName = document.getElementById("fullName")
 
 signUp && signUp.addEventListener("click", () => {
   createUserWithEmailAndPassword(auth, email.value, password.value)
-    .then((res) => {
+    .then(async(res) => {
       const user = res.user;
+      await setDoc(doc(db, "user", user.uid), {
+        email: email.value,
+        fullName: fullName.value,
+        password: password.value,
+      });
       Swal.fire({
         text: 'SignUp Successfully!',
       })
@@ -49,8 +56,16 @@ signUp && signUp.addEventListener("click", () => {
 
 loginBtn && loginBtn.addEventListener("click", () => {
   signInWithEmailAndPassword(auth, email.value, password.value)
-    .then((res) => {
+    .then(async (res) => {
       const user = res.user;
+      const docRef = doc(db, "user", user.uid);
+const docSnap = await getDoc(docRef);
+
+if (docSnap.exists()) {
+  console.log("Document data:", docSnap.data());
+} else {
+  console.log("No such document!");
+}
       Swal.fire({
         text: 'Login Successfully!',
       })
